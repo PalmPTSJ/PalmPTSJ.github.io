@@ -1,0 +1,125 @@
+<html>
+	<head>
+		<title>Brookshear Simple machine</title>
+	</head>
+	<body>
+		<p>Brookshear Simple machine assembly</p>
+		Code :
+		<textarea id="code" name="code" style="width:100%; height:60%; margin:auto"></textarea>
+		Input : 
+		<textarea id="input" name="input" style="width:100%; height:10%; margin:auto"></textarea>
+		Output : 
+		<textarea id="output" name="output" style="width:100%; height:5%; margin:auto"></textarea>
+		<button onclick="run()">Run</button>
+		<table id="memoryWatcher">
+		</table>
+		<ul>
+			<li>LOAD $[R] @[X][Y] = $R <- @XY</li>
+			<li>SET $[R] [X][Y] = $R <- XY</li>
+			<li>STO $[R] @[X][Y] = $R -> @XY</li>
+			<li>MOV $[R] $[S] = $R -> $S</li>
+			<li>ADD $[R] $[S] $[T] = $R <- $S + $T</li>
+			<li>OR $[R] $[S] $[T] = $R <- $S | $T</li>
+			<li>AND $[R] $[S] $[T] = $R <- $S & $T</li>
+			<li>XOR $[R] $[S] $[T] = $R <- $S ^ $T</li>
+			<li>JMP $R [X][Y] = JMP to XY if $R = $0</li>
+		</ul>
+	</body>
+	<script>
+		var registerLimit = 16; // 0-F
+		var memoryLimit = 256; // 00-FF
+		var register = [];
+		var memory = [];
+		
+		function createMemoryWatcher() 
+		{
+		
+		}
+		function unhex(hexStr) {
+			return parseInt(hexStr,16);
+		}
+		function setRegister(adr,val) {
+			register[unhex(adr)] = unhex(val);
+		}	
+		function setMemory(adr,val) {
+			memory[unhex(adr)] = unhex(val);
+		}
+		function reg(adr) {
+			return register[unhex(adr)];
+		}
+		function mem(adr) {
+			return memory[unhex(adr)];
+		}
+		function run()
+		{
+			// reset
+			document.getElementById("output").value = "";
+			err = "";
+			output = "";
+			input = new Array();
+			var inputStr = document.getElementById("input").value;
+			input = (inputStr.replace(/\n+/g," ")).match(/\S+/g);
+			runner = 0;
+			inputRun = 0;
+			insCnt = 0;
+			
+			for(var i = 0;i < registerLimit;i++) register[i] = 0;
+			for(var i = 0;i < memoryLimit;i++) memory[i] = 0;
+			
+			var code = document.getElementById("code").value;
+			var rawArr = code.split("\n");
+			var codeArray = new Array();
+			// parse marker
+			for(var i = 0;i < rawArr.length;i++)
+			{
+				// if marker
+				var str = rawArr[i];
+				if(str.length == 0) continue;
+				codeArray.push(str.toUpperCase());
+			}
+			
+			// run !
+			while(runner >=0 && runner < codeArray.length)
+			{
+				var cmd = codeArray[runner].split(" "); // get this
+				if(cmd[0]=="LOAD") { if(cmd.length == 3) setRegister(cmd[1],mem(cmd[2]))
+				    else err = "ArgC not correct" }
+				else if(cmd[0]=="SET") { if(cmd.length == 3) setRegister(cmd[1],cmd[2])
+				    else err = "ArgC not correct" }
+				else if(cmd[0]=="STO") { if(cmd.length == 3) setMemory(cmd[2],reg(cmd[1]))
+				    else err = "ArgC not correct" }
+				else if(cmd[0]=="MOV") { if(cmd.length == 3) setRegister(cmd[2],reg(cmd[1]))
+				    else err = "ArgC not correct" }
+				else if(cmd[0]=="ADD") { if(cmd.length == 4) setRegister(cmd[1],reg(cmd[2])+reg(cmd[3]))
+				    else err = "ArgC not correct" }
+				else if(cmd[0]=="OR") { if(cmd.length == 4) setRegister(cmd[1],reg(cmd[2])|reg(cmd[3]))
+				    else err = "ArgC not correct" }
+				else if(cmd[0]=="AND") { if(cmd.length == 4) setRegister(cmd[1],reg(cmd[2])&reg(cmd[3]))
+				    else err = "ArgC not correct" }
+				else if(cmd[0]=="XOR") { if(cmd.length == 3) setRegister(cmd[1],reg(cmd[2])^reg(cmd[3]))
+				    else err = "ArgC not correct" }
+				else if(cmd[0]=="JMP") { if(cmd.length == 3) {if(reg(cmd[1]) == reg(0)) runner = Math.floor(unhex(cmd[2])/2); }
+				    else err = "ArgC not correct" }
+				else if(cmd[0]=="OUTR") { if(cmd.length == 2) {console.log(reg(cmd[1])) }
+				    else err = "ArgC not correct" }
+				else if(cmd[0]=="OUTM") { if(cmd.length == 2) {console.log(mem(cmd[1])) }
+				    else err = "ArgC not correct" }
+				else err = "Command not found";
+				if(err != "")
+				{
+					alert("Error at line " + (runner+1) + " : \n" + err + "\nCode : '"+codeArray[runner]+"'");
+					document.getElementById("output").value = "Error";
+					return 1;
+				}
+				runner++;
+				insCnt++;
+				if(insCnt >= 1000000) {
+					alert("Too much instruction");
+					document.getElementById("output").value = "Error";
+					return 1;
+				}
+			}
+			document.getElementById("output").value = output;
+		}
+	</script>
+</html>

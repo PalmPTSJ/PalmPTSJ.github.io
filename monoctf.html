@@ -4,12 +4,13 @@
 		<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.7/css/materialize.min.css">
-		<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.7/js/materialize.min.js"></script>
+		
 		<title>MonoCTF</title>
 	</head>
 
 	<body>
+		<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.7/js/materialize.min.js"></script>
 		<nav>
 			<div class="nav-wrapper container">
 				<a href="#" class="brand-logo">MonoCTF</a>
@@ -30,5 +31,38 @@
 				<a href="easy.html" id="download-button" class="btn-large waves-effect waves-light orange">Start</a>
 			</div>
 		</section>
+		<section class="container">
+			<h2 class="header green-text">Easy</h2>
+			<div class="row">
+				<div class="col s12">
+					<div class="card">
+						<div class="card-content ">
+							<span class="card-title">Easy Crypto</span>
+							<p>Let's start with something easy.</p>
+							<p>Decrypt this : <span class="red-text text-lighten-2">}uoy_r0f_ysa3_00t_si_s1ht{onom</span></p>
+							<p>Too easy right ?</p>
+						</div>
+						<div class="card-action">
+							<form>
+								<div class="row">
+									<div class="input-field col s12 m10">
+										<input required id="easy-crypto" name="flag" type="text" />
+										<label for="easy-crypto">Flag</label>
+									</div>
+									<div class="col s12 m2">
+										<button class="btn waves-effect waves-light flag-submit" type="submit" style="margin-top:20px;">Submit</button>
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
 	</body>
+	<script>
+		$(function() {
+			Materialize.updateTextFields();
+		});
+	</script>
 </html>

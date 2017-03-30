@@ -312,6 +312,8 @@
             $("#cardgen_typeimg").val(cardImg); $("#cardgen_typeimg").material_select();
             $("#cardgen_typename").val(cardType);
             $("#cardgen_lore").val(cardDesc);
+		
+		$("#cardgen_lore").trigger('autoresize');
             //console.log(cardRarity,cardName,cardId,cardImg,cardType,cardDesc);
         }
         

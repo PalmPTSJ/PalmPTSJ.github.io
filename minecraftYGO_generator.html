@@ -1,0 +1,363 @@
+<!DOCTYPE html5>
+
+<html>
+    <head>
+        <title>Minecraft YGO Generator</title>
+        <!--<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">-->
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <!-- Compiled and minified CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/css/materialize.min.css">
+        <!-- Compiled and minified JavaScript -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/js/materialize.min.js"></script>
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        
+        <style>
+            #cardgen_typeimg img {
+                height:40px;
+                width:80px;
+            }
+        </style>
+    </head>
+    <body>
+        <nav>
+			<div class="nav-wrapper container">
+				<a href="#" class="brand-logo">Minecraft YGO</a>
+				<ul id="nav-mobile" class="right hide-on-med-and-down">
+					<li><a href="#">Card</a></li>
+				</ul>
+			</div>
+		</nav>
+        <section class="container">
+            <br> <br>
+            <h1 class="header center orange-text">Mineraft YGO Helper</h1>
+            
+            <div class="row center">
+				<h4 class="header col light s12">Everything you need for minecraft YGO</h4>
+			</div>
+            
+        </section>
+        <section class="container">
+            <h3 class="header">Card generator</h3>
+            
+            <div class="row">
+				<div class="col s12">
+					<div class="card">
+						<div class="card-content">
+							<span class="card-title">Card info</span>
+                            <div class="row">
+                                <form class="col s12">
+                                    <div class="row">
+                                        <div class="input-field col s12 l3">
+                                            <select id="cardgen_rarity">
+                                                <option value="1" selected>Normal (N)</option>
+                                                <option value="2">Rare (R)</option>
+                                                <option value="3">Super Rare (SR)</option>
+                                                <option value="4">Ultra Rare (UR)</option>
+                                                <option value="5">Combo (C)</option>
+                                            </select>
+                                            <label>Rarity</label>
+                                        </div>
+                                        <div class="input-field col s12 l6">
+                                            <input placeholder="Spell" id="cardgen_name" type="text">
+                                            <label for="cardgen_name">Card name</label>
+                                        </div>
+                                        <div class="input-field col s12 l3">
+                                            <input placeholder="1" id="cardgen_id" type="text">
+                                            <label for="cardgen_id">Card ID</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="input-field col s12 l3">
+                                            <select id="cardgen_typeimg">
+                                                <option value="1" selected data-icon="http://www.blocksandgold.com//media/catalog/product/cache/3/image/200x/6cffa5908a86143a54dc6ad9b8a7c38e/m/u/musicdiskchirp_icon32.png" class="left circle">Attack</option>
+                                                <option value="2" data-icon="http://www.blocksandgold.com//media/catalog/product/cache/3/image/200x/6cffa5908a86143a54dc6ad9b8a7c38e/m/u/musicdiskcat_icon32.png" class="left circle">Buff</option>
+                                                <option style="height:40px !important" value="3" data-icon="http://www.blocksandgold.com//media/catalog/product/cache/3/image/200x/6cffa5908a86143a54dc6ad9b8a7c38e/m/u/music_disc_-_wait.png" class="left circle">Equipment</option>
+                                                <option value="4" data-icon="http://www.blocksandgold.com//media/catalog/product/cache/3/image/200x/6cffa5908a86143a54dc6ad9b8a7c38e/m/u/musicdiskmall_icon32.png" class="left circle">Special</option>
+                                                <option value="5" data-icon="http://www.blocksandgold.com//media/catalog/product/cache/3/image/200x/6cffa5908a86143a54dc6ad9b8a7c38e/m/u/musicdiskblocks_icon32.png" class="left circle">Summon</option>
+                                            </select>
+                                            <label>Card Image</label>
+                                        </div>
+                                        <div class="input-field col s12 l9">
+                                            <input placeholder="[Attack]" id="cardgen_typename" type="text">
+                                            <label for="cardgen_id">Card Type</label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="input-field col s12">
+                                            <textarea id="cardgen_lore" class="materialize-textarea"></textarea>
+                                            <label for="cardgen_lore">Description</label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+						</div>
+						<div class="card-action">
+                            <div class="row">
+                                <div class="col s12 m2">
+                                    <button class="btn waves-effect waves-light" style="margin-top:20px;" onclick="cardgen_frominfo()">Generate</button>
+                                </div>
+                            </div>
+						</div>
+					</div>
+				</div>
+			</div>
+            
+            <div class="row">
+				<div class="col s12">
+					<div class="card">
+						<div class="card-content">
+							<span class="card-title">Give command</span>
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <textarea id="cardgen_give" class="materialize-textarea"></textarea>
+                                        <label for="cardgen_give">Command</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-action">
+                                <div class="row">
+                                    <div class="col s12 m2">
+                                        <button class="btn waves-effect waves-light" style="margin-top:20px;" onclick="cardgen_fromgive()">Generate</button>
+                                    </div>
+                                </div>
+                            </div>
+						</div>
+					</div>
+				</div>
+			</div>
+            
+            <div class="row">
+				<div class="col s12">
+					<div class="card">
+						<div class="card-content">
+							<span class="card-title">Tellraw command</span>
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <textarea id="cardgen_tellraw" class="materialize-textarea"></textarea>
+                                        <label for="cardgen_tellraw">Command</label>
+                                    </div>
+                                </div>
+                            </div>
+						</div>
+					</div>
+				</div>
+			</div>
+        </section>
+    </body>
+    <script>
+        $(document).ready(function() {
+            $('select').material_select();
+            $('select').on('contentChanged', function() {
+                // re-initialize (update)
+                $(this).material_select();
+            });
+        });
+        function cardgen_frominfo() {
+            var cardRarity = ["N","R","SR","UR","C"][$("#cardgen_rarity").val()-1]; // 1 2 3 4 5
+            var cardName = $("#cardgen_name").val();
+            var cardId = $("#cardgen_id").val();
+            var cardImg = ["chirp","cat","wait","mall","blocks"][$("#cardgen_typeimg").val()-1]; // 1 2 3 4 5, 
+            var cardType = $("#cardgen_typename").val();
+            var cardDesc = $("#cardgen_lore").val();
+            
+            cardgen_generate(cardRarity,cardName,cardId,cardImg,cardType,cardDesc);
+        }
+        function eat(ori,str) {
+            var strPos = 0;
+            var i = 0;
+            for(;i < ori.length;i++) {
+                if(strPos >= str.length) break;
+                if(ori[i] == str[strPos] || str[strPos] == '*') strPos++;
+            }
+            return ori.substr(i);
+        }
+        function eatParen(ori,parenStart,parenEnd) {
+            if(ori[0] != parenStart) return [ori,""];
+            var i = 1;
+            var depth = 1;
+            var toRet = "";
+            for(;i < ori.length;i++) {
+                //console.log("Check "+ori[i])
+                if(ori[i] == parenStart) depth++;
+                else if(ori[i] == parenEnd) depth--;
+                
+                if(depth == 0) break;
+                toRet += ori[i];
+            }
+            //console.log(ori,toRet);
+            return [ori.substr(i+1),toRet];
+        }
+        function eatUntilClose(ori,close) {
+            // check escape
+            var toRet = "";
+            var i = 0;
+            for(;i < ori.length;i++) {
+                if(ori[i] == '\\') {
+                    // escape
+                    toRet += ori[i];
+                    i++;
+                    toRet += ori[i];
+                }
+                else {
+                    if(ori[i] == close) break;
+                    toRet += ori[i];
+                }
+            }
+            return [ori.substr(i+1),toRet];
+        }
+        function splitLore(ori) {
+            var toRet = [];
+            var isOpen = false;
+            for(var i = 0;i < ori.length;i++) {
+                if(ori[i] == '"' && (i == 0 || ori[i-1] != '\\')) {
+                    if(!isOpen) {
+                        isOpen = true;
+                        toRet.push("");
+                    }
+                    else isOpen = false;
+                }
+                else {
+                    if(isOpen) toRet[toRet.length-1] += ori[i];
+                }
+            }
+            return toRet;
+        }
+        function cardgen_fromgive() {
+            // /give @p minecraft:record_chirp 1 0 {display:{Name:"[N] Spell",Lore:["[Attack]","Shoot basic spell (ATK 5)","in front of you","<ID : 1>"]},HideFlags:63}
+            var cmd = $("#cardgen_give").val();
+            cmd = eat(cmd,"/give @*");
+            cmd = eatParen(cmd,'[',']')[0];
+            cmd = eat(cmd," minecraft:record_");
+            
+            var cardTypeImgName = cmd.substr(0,cmd.indexOf(' '));
+            var cardImg = cardTypeImgName; // 1 2 3 4 5, 
+            cmd = cmd.substr(cmd.indexOf(' '));
+            cmd = eat(cmd," 1 0 ");
+            cmd = eatParen(cmd,'{','}')[1];
+            
+            
+            //console.log(cmd);
+            
+            cmd = eat(cmd,"display:");
+            cmd = eatParen(cmd,'{','}')[1];
+            cmd = eat(cmd,'Name:"');
+            
+            var cardRarityStr;
+            [cmd,cardRarityStr] = eatParen(cmd,'[',']');
+            var cardRarity = cardRarityStr; // 1 2 3 4 5
+            cmd = eat(cmd," ");
+            
+            
+            var cardName;
+            [cmd,cardName] = eatUntilClose(cmd,'"');
+            
+            cmd = eat(cmd,",Lore:");
+            cmd = eatParen(cmd,'[',']')[1];
+            
+            lore = splitLore(cmd);
+            
+            var cardIdStr = lore[lore.length-1];
+            var cardId = cardIdStr.substring(6,cardIdStr.length-1);
+            
+            var cardType = lore[0];
+            var cardDesc = "";
+            for(var i = 1;i < lore.length-1;i++) {
+                cardDesc += lore[i];
+                if(i != lore.length-2) cardDesc += "\n";
+            }
+            
+            console.log(cardRarity,cardName,cardImg,cardType,cardId,cardDesc);
+            cardgen_generate(cardRarity,unescape(cardName),cardId,cardImg,unescape(cardType),unescape(cardDesc));
+        }
+        function escape(str) {
+            var toRet = "";
+            for(var i = 0;i < str.length;i++) {
+                if(str[i] == '"') toRet += '\\"';
+                else if(str[i] == '\\') toRet += '\\\\';
+                else toRet += str[i];
+            }
+            return toRet;
+        }
+        function unescape(str) {
+            var toRet = "";
+            for(var i = 0;i < str.length;i++) {
+                if(str[i] == '\\') i++;
+                toRet += str[i];
+            }
+            return toRet;
+        }
+        function cardgen_generate(rarity,name,id,img,type,desc) {
+            name = escape(name);
+            type = escape(type);
+            desc = escape(desc);
+            cardgen_geninfo(rarity,name,id,img,type,desc);
+            cardgen_gengive(rarity,name,id,img,type,desc);
+            cardgen_gentellraw(rarity,name,id,img,type,desc);
+            Materialize.updateTextFields();
+        }
+        
+        function cardgen_geninfo(rarity,name,id,img,type,desc) {
+            var cardRarity = ""+(["N","R","SR","UR","C"].indexOf(rarity)+1); // 1 2 3 4 5
+            var cardName = unescape(name);
+            var cardId = id;
+            var cardImg = ""+(["chirp","cat","wait","mall","blocks"].indexOf(img)+1); // 1 2 3 4 5, 
+            var cardType = unescape(type);
+            var cardDesc = unescape(desc);
+            
+            $("#cardgen_rarity").val(cardRarity); $("#cardgen_rarity").material_select();
+            $("#cardgen_name").val(cardName);
+            $("#cardgen_id").val(cardId);
+            $("#cardgen_typeimg").val(cardImg); $("#cardgen_typeimg").material_select();
+            $("#cardgen_typename").val(cardType);
+            $("#cardgen_lore").val(cardDesc);
+            //console.log(cardRarity,cardName,cardId,cardImg,cardType,cardDesc);
+        }
+        
+        function generateDisplayTag(rarity,name,type,desc,id) {
+            var cmd = 'display:{Name:"['+rarity+'] '+name+'",Lore:["'+type+'"';
+            for(var line of desc.split("\n")) {
+                cmd += ',"'+line+'"';
+            }
+            cmd += ',"<ID : '+id+'>"]}';
+            return cmd
+        }
+        
+        function cardgen_gengive(rarity,name,id,img,type,desc) {
+            // /give @p minecraft:record_chirp 1 0 {display:{Name:"[N] Spell",Lore:["[Attack]","Shoot basic spell (ATK 5)","in front of you","<ID : 1>"]},HideFlags:63}
+            /*var cmd = '/give @p minecraft:record_'+img+' 1 0 {display:{Name:"['+rarity+'] '+name+'",Lore:["'+type+'"';
+            for(var line of desc.split("\n")) {
+                cmd += ',"'+line+'"';
+            }
+            cmd += ',"<ID : '+id+'>"]},HideFlags:63';
+            if(rarity == "SR" || rarity == "UR") cmd += ',ench:[{id:1,lvl:1}]';
+            cmd += '}';
+            $("#cardgen_give").val(cmd);*/
+            
+            var cmd = '/give @p minecraft:record_'+img+' 1 0 {'+generateDisplayTag(rarity,name,type,desc,id)+',HideFlags:63';
+            if(rarity == "SR" || rarity == "UR") cmd += ',ench:[{id:1,lvl:1}]';
+            cmd += '}';
+            $("#cardgen_give").val(cmd);
+            $("#cardgen_give").trigger('autoresize');
+        }
+        
+        function cardgen_gentellraw(rarity,name,id,img,type,desc) {
+            // /tellraw @a [{"text":"[Yu-gi-oh] ","color":"yellow"},{"selector":"@p[tag=ygo-duel-use1]","color":"aqua","bold":true},{"text":" use ","color":"white","bold":false},{"text":"[N] Spell","color":"green","bold":true,"hoverEvent":{"action":"show_item","value":"{id:minecraft:record_chirp,Count:1,tag:{display:{Name:\"[N] Spell\",Lore:[\"[Attack]\",\"Shoot basic spell (ATK 5)\",\"in front of you.\",\"<ID : 1>\"]},HideFlags:63}}"}}]
+            
+            var rarityColor = {
+                "N" : "green",
+                "R" : "blue",
+                "SR" : "gold",
+                "UR" : "purple",
+                "C" : "gray"
+            }
+            
+            var cmd = '/tellraw @a [{"text":"[Yu-gi-oh] ","color":"yellow"},{"selector":"@p[tag=ygo-duel-use'+id+']","color":"aqua","bold":true},{"text":" use ","color":"white","bold":false},{"text":"['+rarity+'] '+name+'","color":"'+rarityColor[rarity]+'","bold":true,"hoverEvent":{"action":"show_item","value":"{id:minecraft:record_chirp,Count:1,tag:{'+escape(generateDisplayTag(rarity,name,type,desc,id))+',HideFlags:63}}"}}]';
+            
+            $("#cardgen_tellraw").val(cmd);
+            $('#cardgen_tellraw').trigger('autoresize');
+            // cardgen_tellraw
+        }
+    </script>
+</html>

@@ -144,6 +144,23 @@
 					</div>
 				</div>
 			</div>
+            
+            <div class="row">
+				<div class="col s12">
+					<div class="card">
+						<div class="card-content">
+							<span class="card-title">Array generation command</span>
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <textarea id="cardgen_array" class="materialize-textarea"></textarea>
+                                        <label for="cardgen_array">Command</label>
+                                    </div>
+                                </div>
+                            </div>
+						</div>
+					</div>
+				</div>
+			</div>
         </section>
     </body>
     <script>
@@ -295,6 +312,7 @@
             cardgen_geninfo(rarity,name,id,img,type,desc);
             cardgen_gengive(rarity,name,id,img,type,desc);
             cardgen_gentellraw(rarity,name,id,img,type,desc);
+            cardgen_genarray(rarity,name,id,img,type,desc);
             Materialize.updateTextFields();
         }
         
@@ -360,6 +378,13 @@
             $("#cardgen_tellraw").val(cmd);
             $('#cardgen_tellraw').trigger('autoresize');
             // cardgen_tellraw
+        }
+        
+        function cardgen_genarray(rarity,name,id,img,type,desc) {
+            var cmd = '/summon falling_block ~ ~2 ~ {Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/setblock ~ ~-1 ~1 minecraft:repeating_command_block 3 0 {Command:\\"/scoreboard players tag @e[tag=ygo-duel-cardact] add ygo-duel-card#id# {Item:{tag:{display:{Name:\\\\\\"[#r#] #n#\\\\\\"}}}}\\",auto:0b}",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/setblock ~ ~-2 ~2 minecraft:chain_command_block 3 0 {Command:\\"/testfor @e[tag=ygo-duel-card#id#]\\",auto:1b}",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/setblock ~ ~-3 ~3 minecraft:unpowered_comparator 2",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/setblock ~ ~-4 ~4 minecraft:repeating_command_block 3 0 {Command:\\"/testfor @a[tag=ygo-duel-use#id#]\\",auto:0b}",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/setblock ~ ~-5 ~5 minecraft:chain_command_block 11 0 {Command:\\"/setblock ~ ~1 ~ minecraft:gold_block\\",auto:1b}",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/setblock ~ ~-6 ~6 minecraft:chain_command_block 3 0 {Command:\\"/testforblock ~ ~1 ~-1 minecraft:air\\",auto:1b}",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/setblock ~ ~-7 ~7 minecraft:chain_command_block 11 0 {Command:\\"/scoreboard players tag @e[tag=ygo-duel-card#id#,c=1] add ygo-duel-carduse\\",auto:1b}",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/setblock ~ ~-8 ~8 minecraft:chain_command_block 11 0 {Command:\\"execute @e[tag=ygo-duel-carduse] ~ ~ ~ /scoreboard players tag @p add ygo-duel-use#id#\\",auto:1b}",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/setblock ~ ~-9 ~9 minecraft:chain_command_block 11 0 {Command:\\"/setblock ~ ~-1 ~-28 minecraft:redstone_block\\",auto:1b}",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/setblock ~ ~-10 ~10 minecraft:chain_command_block 11 0 {Command:\\"/kill @e[tag=ygo-duel-carduse]\\",auto:1b}",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/setblock ~ ~-11 ~11 minecraft:chain_command_block 3 0 {Command:\\"/setblock ~ ~1 ~-6 minecraft:air\\",auto:1b}",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/say Array created!",auto:1b},Passengers:[{id:falling_block,Block:"minecraft:command_block",Time:1,TileEntityData:{Command:"/fill ~ ~-13 ~ ~ ~ ~ minecraft:air",auto:1b}}]}]}]}]}]}]}]}]}]}]}]}]}';
+            cmd = cmd.replace(/#id#/g, id).replace(/#r#/g,rarity).replace(/#n#/g,name);
+            $("#cardgen_array").val(cmd);
+            $('#cardgen_array').trigger('autoresize');
         }
     </script>
 </html>

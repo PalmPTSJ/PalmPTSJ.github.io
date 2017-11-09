@@ -1,0 +1,221 @@
+<!DOCTYPE html5>
+<html>
+    <head>
+        <title>PalmScript - Parser</title>
+    </head>
+    <body style="width:100%; height:100%; padding-bottom:100px;">
+        <h1> PalmScript - Parser</h1>
+        <h3>Grammar</h3>
+        <ul>
+            <li>IMM -> *IMM | [0-9]+ | (IMM BOP IMM)</li>
+            <li>BOP -> + | - | * | / | % | &lt; | &gt; | =</li>
+            <li>LBL -> _[a-zA-Z0-9]+</li>
+            <li>CMD -> jnz IMM LBL | set IMM IMM | out IMM | in IMM | LBL:</li>
+            <li>S   -> CMD S | EOF</li>
+        </ul>
+        <textarea id="textArea" style="width:600px; height:300px;"></textarea>
+        <br>
+        <input type="button" value="Parse (YES/NO)" onclick="parse_button()">
+        <!--<input type="button" value="Run" onclick="run_button()">-->
+        <h3>Example Program</h3>
+        <div>
+            set 0 ((((((1+2)*3)-4)/5)%6)=((7&gt;8)&lt;9))<br>
+            set 1 *0<br>
+            in 2<br>
+            jnz (1-(*2=0)) _exitLabel123<br>
+            jnz 0 _exitLabel123<br>
+            out *2<br>
+            _exitLabel123:<br>
+            out *0
+        </div>
+        
+        <h3>Example Program - Factorial</h3>
+        <div>
+            in 0<br>
+            set 1 1<br>
+            <br>
+            _loop:<br>
+            jnz (*0 &lt; 2) _exit<br>
+            set 1 (*1 * *0)<br>
+            set 0 (*0 - 1)<br>
+            jnz 1 _loop<br>
+            <br>
+            _exit:<br>
+            out *1
+        </div>
+        
+    </body>
+    <script>
+        /*
+        Grammar :
+            IMM -> *IMM | [0-9]+ | (IMM BOP IMM)
+            BOP -> + | - | * | / | % | < | > | =
+            LBL -> _[a-zA-Z0-9]+
+            CMD -> jnz IMM LBL | set IMM IMM | out IMM | in IMM | LBL:
+            S   -> CMD S | EOF
+        */
+        function tokenize() {
+            // Returns array of token [{type:TYPE, val:VALUE}, ...]
+            var string = document.getElementById("textArea").value;
+            var arr = [];
+            
+            function matchRegex(regex,type) {
+                let res;
+                res = string.match(regex);
+                if(res !== null) { // Matched
+                    arr.push({
+                        type : type,
+                        val  : res[0]
+                    });
+                    string = string.replace(regex,'');
+                    return true;
+                }
+                return false;
+            }
+            
+            while(string.length > 0) {
+                var res;
+                
+                if(string.match(/^\s/) !== null) {
+                    string = string.replace(/^\s/,'');
+                    continue;
+                }
+                
+                if(matchRegex(/^[0-9]+/,"IMM")) continue;
+                if(matchRegex(/^_[a-zA-Z0-9]+/,"LBL")) continue;
+                if(matchRegex(/^\(/,"PAR_OPEN")) continue;
+                if(matchRegex(/^\)/,"PAR_CLOSE")) continue;
+                if(matchRegex(/^\:/,"COLON")) continue;
+                if(matchRegex(/^[\+\-\*\/\%\<\>\=]/,"BOP")) continue;
+                if(matchRegex(/^(jnz|set|out|in)/,"CMD")) continue;
+                
+                // error !
+                throw "ERROR_TOKENIZER";
+                
+                break;
+            }
+            arr.push({
+                type : "EOF",
+                val  : ""
+            })
+            
+            console.log("Tokenizer result : ")
+            for(var x of arr) {
+                console.log(x);
+            }
+            
+            return arr;
+        }
+        
+        function parse() {
+            var tokens = tokenize();
+            var nowI = 0;
+            
+            function peek() {
+                return tokens[nowI];
+            }
+            function match(type) {
+                if(peek().type != type) throw "ERROR_MATCH";
+                nowI++;
+                return tokens[nowI-1].val;
+            }
+            
+            function imm() { // *IMM | [0-9]+ | (IMM BOP IMM)
+                var params = [];
+                var toRet = {
+                    type : "IMM"
+                };
+                if(peek().val == "*") {
+                    toRet.executionType = "ADDR";
+                    match("BOP");
+                    params.push(imm());
+                }
+                else if(peek().type == "IMM") {
+                    toRet.executionType = "NUMBER";
+                    params.push(match("IMM"));
+                }
+                else if(peek().type == "PAR_OPEN") {
+                    toRet.executionType = "OPERATION";
+                    match("PAR_OPEN");
+                    params.push(imm());
+                    params.push(match("BOP"));
+                    params.push(imm());
+                    match("PAR_CLOSE");
+                }
+                else throw "ERROR_IMM";
+                toRet.params = params;
+                return toRet;
+            }
+            function lbl() { // _[a-zA-Z0-9]+
+                if(peek().type != "LBL") throw "ERROR_LBL";
+                return {
+                    type : "LBL",
+                    executionType : "LBL",
+                    params : [match("LBL")]
+                };
+            }
+            function cmd() {
+                var params = [];
+                var toRet = {
+                    type : "CMD"
+                };
+                if(peek().type == "CMD") { // jnz IMM LBL | set IMM IMM | out IMM | in IMM
+                    switch(match("CMD")) {
+                        case 'jnz' :
+                            toRet.executionType = "JNZ";
+                            params.push(imm());
+                            params.push(lbl());
+                            break;
+                        case 'set' :
+                            toRet.executionType = "SET";
+                            params.push(imm());
+                            params.push(imm());
+                            break;
+                        case 'out' :
+                            toRet.executionType = "OUT";
+                            params.push(imm());
+                            break;
+                        case 'in' :
+                            toRet.executionType = "IN";
+                            params.push(imm());
+                            break;
+                        default :
+                            throw 'ERROR_CMD';
+                    }
+                }
+                else { // LBL:
+                    toRet.executionType = "LBL_DECLARATION";
+                    params.push(lbl());
+                    match("COLON");
+                }
+                toRet.params = params;
+                return toRet;
+            }
+            
+            var cmdList = [];
+            
+            function S() {
+                if(peek().type == "EOF") return;
+                cmdList.push(cmd());
+                console.log(cmdList);
+                S();
+            }
+            
+            S();
+            
+            return cmdList;
+        }
+        
+        function parse_button() {
+            try {
+                parse();
+                alert("YES");
+            }
+            catch(e) {
+                console.log(e)
+                alert("NO");
+            }
+        }
+        
+    </script>
+</html>

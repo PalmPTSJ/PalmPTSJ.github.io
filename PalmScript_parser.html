@@ -1,9 +1,9 @@
 <!DOCTYPE html5>
-<html>
+<html style="width:100%; height:100%;">
     <head>
         <title>PalmScript - Parser</title>
     </head>
-    <body style="width:100%; height:100%; padding-bottom:100px;">
+    <body style="padding-bottom:100px;">
         <h1> PalmScript - Parser</h1>
         <h3>Grammar</h3>
         <ul>
@@ -17,18 +17,12 @@
         <br>
         <input type="button" value="Parse (YES/NO)" onclick="parse_button()">
         <!--<input type="button" value="Run" onclick="run_button()">-->
-        <h3>Example Program</h3>
+        <h3>Example Program - A+B</h3>
         <div>
-            set 0 ((((((1+2)*3)-4)/5)%6)=((7&gt;8)&lt;9))<br>
-            set 1 *0<br>
-            in 2<br>
-            jnz (1-(*2=0)) _exitLabel123<br>
-            jnz 0 _exitLabel123<br>
-            out *2<br>
-            _exitLabel123:<br>
-            out *0
+            in 0<br>
+            in 1<br>
+            out (*0 + *1)<br>
         </div>
-        
         <h3>Example Program - Factorial</h3>
         <div>
             in 0<br>
@@ -120,29 +114,32 @@
                 return tokens[nowI-1].val;
             }
             
+            function bop() {
+                return match("BOP"); // tokenizer already took care of identifying BOP
+            }
+            
             function imm() { // *IMM | [0-9]+ | (IMM BOP IMM)
                 var params = [];
                 var toRet = {
                     type : "IMM"
                 };
-                if(peek().val == "*") {
+                if(peek().val == "*") { // *IMM
                     toRet.executionType = "ADDR";
-                    match("BOP");
-                    params.push(imm());
+                    match("BOP"); // match('*')
+                    params.push(imm()); // imm()
                 }
-                else if(peek().type == "IMM") {
+                else if(peek().type == "IMM") { // [0-9]+
                     toRet.executionType = "NUMBER";
-                    params.push(match("IMM"));
+                    params.push(match("IMM")); // imm()
                 }
-                else if(peek().type == "PAR_OPEN") {
+                else {
                     toRet.executionType = "OPERATION";
-                    match("PAR_OPEN");
-                    params.push(imm());
-                    params.push(match("BOP"));
-                    params.push(imm());
-                    match("PAR_CLOSE");
+                    match("PAR_OPEN");  // match('(')
+                    params.push(imm()); // imm()
+                    params.push(bop()); // bop()
+                    params.push(imm()); // imm()
+                    match("PAR_CLOSE"); // match(')')
                 }
-                else throw "ERROR_IMM";
                 toRet.params = params;
                 return toRet;
             }
@@ -151,7 +148,7 @@
                 return {
                     type : "LBL",
                     executionType : "LBL",
-                    params : [match("LBL")]
+                    params : [match("LBL")] // match(LBL)
                 };
             }
             function cmd() {
@@ -163,21 +160,21 @@
                     switch(match("CMD")) {
                         case 'jnz' :
                             toRet.executionType = "JNZ";
-                            params.push(imm());
-                            params.push(lbl());
+                            params.push(imm()); // imm()
+                            params.push(lbl()); // lbl()
                             break;
                         case 'set' :
                             toRet.executionType = "SET";
-                            params.push(imm());
-                            params.push(imm());
+                            params.push(imm()); // imm()
+                            params.push(imm()); // imm()
                             break;
                         case 'out' :
                             toRet.executionType = "OUT";
-                            params.push(imm());
+                            params.push(imm()); // imm()
                             break;
                         case 'in' :
                             toRet.executionType = "IN";
-                            params.push(imm());
+                            params.push(imm()); // imm()
                             break;
                         default :
                             throw 'ERROR_CMD';
@@ -185,8 +182,8 @@
                 }
                 else { // LBL:
                     toRet.executionType = "LBL_DECLARATION";
-                    params.push(lbl());
-                    match("COLON");
+                    params.push(lbl()); // lbl()
+                    match("COLON"); // match(':')
                 }
                 toRet.params = params;
                 return toRet;
@@ -196,9 +193,8 @@
             
             function S() {
                 if(peek().type == "EOF") return;
-                cmdList.push(cmd());
-                console.log(cmdList);
-                S();
+                cmdList.push(cmd()); // cmd()
+                S(); // S()
             }
             
             S();

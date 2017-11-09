@@ -13,10 +13,16 @@
             <li>CMD -> jnz IMM LBL | set IMM IMM | out IMM | in IMM | LBL:</li>
             <li>S   -> CMD S | EOF</li>
         </ul>
+        <h3>Usage</h3>
+        <p>
+            Write your program in the textarea below.<br>
+            Press "Parse" button to check the grammar of your program.<br>
+            Press "Run" to run your program in an interpreter.
+        </p>
         <textarea id="textArea" style="width:600px; height:300px;"></textarea>
         <br>
         <input type="button" value="Parse (YES/NO)" onclick="parse_button()">
-        <!--<input type="button" value="Run" onclick="run_button()">-->
+        <input type="button" value="Run (Interpreter)" onclick="run_button()">
         <h3>Example Program - A+B</h3>
         <div>
             in 0<br>
@@ -49,7 +55,7 @@
             S   -> CMD S | EOF
         */
         function tokenize() {
-            // Returns array of token [{type:TYPE, val:VALUE}, ...]
+            // Returns array of token [{type:TYPE, val:VALUE}, ...] to use in parser
             var string = document.getElementById("textArea").value;
             var arr = [];
             
@@ -102,6 +108,7 @@
         }
         
         function parse() {
+            // Returns array of commands to use in interpreter
             var tokens = tokenize();
             var nowI = 0;
             
@@ -129,7 +136,7 @@
                     params.push(imm()); // imm()
                 }
                 else if(peek().type == "IMM") { // [0-9]+
-                    toRet.executionType = "NUMBER";
+                    toRet.executionType = "INT";
                     params.push(match("IMM")); // imm()
                 }
                 else {
@@ -147,16 +154,15 @@
                 if(peek().type != "LBL") throw "ERROR_LBL";
                 return {
                     type : "LBL",
-                    executionType : "LBL",
+                    executionType : "STR",
                     params : [match("LBL")] // match(LBL)
                 };
             }
             function cmd() {
                 var params = [];
-                var toRet = {
-                    type : "CMD"
-                };
+                var toRet = {};
                 if(peek().type == "CMD") { // jnz IMM LBL | set IMM IMM | out IMM | in IMM
+                    toRet.type = "CMD"
                     switch(match("CMD")) {
                         case 'jnz' :
                             toRet.executionType = "JNZ";
@@ -181,7 +187,8 @@
                     }
                 }
                 else { // LBL:
-                    toRet.executionType = "LBL_DECLARATION";
+                    toRet.type = "LBL_DECLARATION"
+                    toRet.executionType = "LBL_DECLARATION"; // Read as STR value
                     params.push(lbl()); // lbl()
                     match("COLON"); // match(':')
                 }
@@ -210,6 +217,95 @@
             catch(e) {
                 console.log(e)
                 alert("NO");
+            }
+        }
+        
+        function run_button() {
+            try {
+                let memory = {};
+                let commandList = []
+                try {
+                    commandList = parse();
+                }
+                catch(e) {
+                    throw "PARSE_ERROR";
+                }
+                let pc = 0;
+                let insCount = 0;
+                
+                
+                function execute(cmd) {
+                    if(cmd.executionType == "STR") return cmd.params[0]; // Interpret as string
+                    if(cmd.executionType == "INT") return parseInt(cmd.params[0]);
+                    if(cmd.executionType == "ADDR") return memory[execute(cmd.params[0])];
+                
+                    switch(cmd.executionType) {
+                        case 'JNZ' : { // jnz -> imm lbl
+                            let imm = execute(cmd.params[0]);
+                            if(imm != 0) {
+                                let lbl = execute(cmd.params[1]);
+                                // search for lbl
+                                for(let i = 0;i < commandList.length;i++) {
+                                    if(commandList[i].type == 'LBL_DECLARATION' && execute(commandList[i])==lbl) {
+                                        // jump to here
+                                        pc = i;
+                                        return;
+                                    }
+                                }
+                                throw "EXECERROR_NOJUMPLABEL"
+                            }
+                            break;
+                        }
+                        case 'SET' : {
+                            let adr = execute(cmd.params[0]);
+                            let imm = execute(cmd.params[1]);
+                            memory[adr] = imm;
+                            break;
+                        }
+                        case 'IN' : {
+                            let adr = execute(cmd.params[0]);
+                            memory[adr] = parseInt(prompt("Please enter an integer"));
+                            break;
+                        }
+                        case 'OUT' : {
+                            let imm = execute(cmd.params[0]);
+                            alert("Output : "+imm);
+                            break;
+                        }
+                        case 'LBL_DECLARATION' :
+                            return execute(cmd.params[0]);
+                        case 'OPERATION' : {
+                            let imm1 = execute(cmd.params[0]);
+                            let imm2 = execute(cmd.params[2]);
+                            switch(cmd.params[1]) {
+                                case '+' : return imm1+imm2;
+                                case '-' : return imm1-imm2;
+                                case '*' : return imm1*imm2;
+                                case '/' : return Math.floor(imm1/imm2);
+                                case '%' : return imm1%imm2;
+                                case '<' : return imm1<imm2?1:0;
+                                case '>' : return imm1>imm2?1:0;
+                                case '=' : return imm1==imm2?1:0;
+                            }
+                            break;
+                       }
+                    }
+                }
+                
+                
+                while(pc < commandList.length) {
+                    execute(commandList[pc])
+                    pc++;
+                    insCount++;
+                    if(insCount > 100000) {
+                        alert("The program run for more than 100000 iterations, exitting... (possible infinite loop).");
+                        break;
+                    }
+                }
+            }
+            catch(e) {
+                if(e == "PARSE_ERROR") alert("Parse error");
+                else alert("Execution error : " + e);
             }
         }
         

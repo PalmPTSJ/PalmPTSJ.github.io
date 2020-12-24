@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>App Switcher</title>
+  </head>
+  <body>
+    <h1 style="text-align: center;">App Switcher</h1>
+    <h2 style="text-align: center;" id="action">Redirecting ...</h2>
+    <div style="text-align: center;"><a id="link">Or press here</a></div>
+    <h4>How to use</h4>
+    <ul>
+      <li>Forward: app-switcher.html?type=redirect&forward=https://www.google.com&callback=https://www.youtube.com</li>
+      <li>Callback: app-switcher.html?type=callback</li>
+    </ul>
+  </body>
+  <script>
+    const url = new URL(window.location.href)
+    let type = url.searchParams.get("type")
+
+    if(type === "redirect") {
+      let forward = url.searchParams.get("forward")
+      let callback = url.searchParams.get("callback")
+      if(forward === "") {
+        document.getElementById("action").innerHTML = "Something went wrong"
+      } else {
+        document.getElementById("link").setAttribute("href", forward)
+
+        window.localStorage.setItem("callback", callback)
+        window.location = forward
+        document.getElementById("action").innerHTML = "Redirecting to payment service ..."
+      }
+    } 
+    else if(type === "callback") {
+      let callback = window.localStorage.getItem("callback")
+      if(callback === "") {
+        document.getElementById("action").innerHTML = "Something went wrong"
+      } else {
+        window.localStorage.removeItem("callback")
+        window.location = callback
+        document.getElementById("action").innerHTML = "Returning to previous app ..."
+      }
+    } else {
+      document.getElementById("action").innerHTML = "Something went wrong"
+    }
+  </script>
+</html>

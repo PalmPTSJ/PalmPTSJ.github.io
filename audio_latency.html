@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Audio Latency</title>
+    </head>
+    <body>
+        <h2>Audio Latency Tester</h2>
+        <div>
+            Threshold: <input type="text" id="cfg_threshold" value="0.01"/> <br>
+            Beep Duration MS: <input type="text" id="cfg_beep_duration" value="50"/> <br>
+            Beep Freq HZ: <input type="text" id="cfg_beep_freq" value="400"/> <br>
+        </div>
+        <div>
+            <button id="startButton">Start Audio</button>
+            <button id="measureButton" disabled>Measure</button>
+        </div>
+        <div id="status">Click start to begin</div>
+    </body>
+    <script>
+        function CFG_THRESHOLD() { return parseFloat(document.getElementById("cfg_threshold").value) }
+        function CFG_BEEP_DURATION_MS() { return parseInt(document.getElementById("cfg_beep_duration").value) }
+        function CFG_BEEP_FREQ_HZ() { return parseInt(document.getElementById("cfg_beep_freq").value) }
+
+        let audioContext;
+        let workletNode;
+        let startTime = 0;
+
+        const startButton = document.getElementById("startButton");
+        const measureButton = document.getElementById("measureButton");
+        const statusDiv = document.getElementById("status");
+
+        const workletProcessorCode = `
+        class LatencyProcessor extends AudioWorkletProcessor {
+            constructor(options) {
+                super();
+
+                this._threshold = options.processorOptions.threshold;
+                this._isMeasuring = false;
+                this._startTime = 0;
+
+                this.port.onmessage = (e) => {
+                    if (e.data.type === 'start') {
+                        this._isMeasuring = true;
+                        this._startTime = e.data.startTime;
+                    }
+                }
+            }
+
+            process(inputs, outputs, parameters) {
+                const input = inputs[0];
+                const inputChannel = input[0];
+
+                if (!this._isMeasuring || !inputChannel) return true;
+
+                let sum = 0;
+                for (let i = 0; i < inputChannel.length; i++) {
+                    sum += Math.abs(inputChannel[i]);
+                }
+                let avg = sum / inputChannel.length;
+
+                console.log(avg);
+
+                if (avg > this._threshold) {
+                    const endTime = currentTime;
+                    const latency = (endTime - this._startTime) * 1000;
+
+                    this.port.postMessage({
+                        type: 'detected',
+                        latency: latency,
+                        endTime: endTime,
+                    })
+
+                    this._isMeasuring = false;
+                }
+
+                return true;
+            }
+        }
+
+        registerProcessor('latency-processor', LatencyProcessor);
+        `
+
+        async function initAudio() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false,
+                    },
+                    video: false
+                })
+
+                audioContext = new window.AudioContext();
+
+                const workletBlob = new Blob([workletProcessorCode], { type: 'application/javascript' });
+                const workletURL = URL.createObjectURL(workletBlob);
+
+                await audioContext.audioWorklet.addModule(workletURL);
+
+                workletNode = new AudioWorkletNode(audioContext, 'latency-processor', {
+                    processorOptions: {
+                        threshold: CFG_THRESHOLD()
+                    }
+                })
+
+                const mediaStreamSource = audioContext.createMediaStreamSource(stream);
+                mediaStreamSource.connect(workletNode);
+                workletNode.connect(audioContext.destination);
+
+                workletNode.port.onmessage = (e) => {
+                    if (e.data.type == 'detected') {
+                        const { latency, endTime } = e.data;
+
+                        console.log(`Finish timestamp: ${(endTime * 1000).toFixed(2)} ms`);
+                        console.log(`Latency: ${latency.toFixed(2)} ms`);
+
+                        statusDiv.textContent = `Latency: ${latency.toFixed(2)} ms`;
+                    }
+                }
+
+                statusDiv.textContent = 'Audio ready. Click measure to test';
+                measureButton.disabled = false;
+                startButton.disabled = true;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function playBeepAndMeasure() {
+            if (!audioContext || !workletNode) {
+                alert('Audio is not initialized');
+                return;
+            }
+
+            audioContext.resume();
+            startTime = audioContext.currentTime;
+
+            console.log(`Start timestamp: ${(startTime * 1000).toFixed(2)} ms`);
+            statusDiv.textContent = `Measuring...`;
+
+            workletNode.port.postMessage({
+                type: 'start',
+                startTime: startTime,
+            });
+
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(CFG_BEEP_FREQ_HZ(), audioContext.currentTime);
+
+            const now = audioContext.currentTime;
+            gain.gain.setValueAtTime(1, now);
+            gain.gain.setValueAtTime(0, now + CFG_BEEP_DURATION_MS() / 1000);
+            
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+
+            oscillator.start(now);
+            oscillator.stop(now + CFG_BEEP_DURATION_MS() / 1000);
+        }
+
+        startButton.addEventListener('click', initAudio);
+        measureButton.addEventListener('click', playBeepAndMeasure);
+    </script>
+</html>

@@ -6,7 +6,7 @@
     <body>
         <h2>Audio Latency Tester</h2>
         <div>
-            Threshold: <input type="text" id="cfg_threshold" value="0.01"/> <br>
+            Threshold: <input type="text" id="cfg_threshold" value="0.1"/> <br>
             Beep Duration MS: <input type="text" id="cfg_beep_duration" value="50"/> <br>
             Beep Freq HZ: <input type="text" id="cfg_beep_freq" value="400"/> <br>
         </div>
@@ -36,12 +36,17 @@
 
                 this._threshold = options.processorOptions.threshold;
                 this._isMeasuring = false;
+                this._isDetected = false;
                 this._startTime = 0;
 
                 this.port.onmessage = (e) => {
                     if (e.data.type === 'start') {
                         this._isMeasuring = true;
+                        this._isDetected = false;
                         this._startTime = e.data.startTime;
+                    }
+                    else if (e.data.type === 'stop') {
+                        this._isMeasuring = false;
                     }
                 }
             }
@@ -58,7 +63,8 @@
                 }
                 let avg = sum / inputChannel.length;
 
-                console.log(avg);
+                console.log("Time:", currentTime.toFixed(6), "| Avg data:", avg.toFixed(4), "| data len:", inputChannel.length );
+                if (this._isDetected) return true;
 
                 if (avg > this._threshold) {
                     const endTime = currentTime;
@@ -70,7 +76,9 @@
                         endTime: endTime,
                     })
 
-                    this._isMeasuring = false;
+                    this._isDetected = true;
+
+                    // this._isMeasuring = false;
                 }
 
                 return true;
@@ -116,6 +124,13 @@
                         console.log(`Latency: ${latency.toFixed(2)} ms`);
 
                         statusDiv.textContent = `Latency: ${latency.toFixed(2)} ms`;
+
+                        // Stop 250ms later
+                        window.setTimeout(() => {
+                            workletNode.port.postMessage({
+                                type: 'stop',
+                            });
+                        }, 250);
                     }
                 }
 

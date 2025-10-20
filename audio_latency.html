@@ -24,6 +24,8 @@
         let audioContext;
         let workletNode;
         let startTime = 0;
+        let startPerfTime = 0;
+        let startDateTime = null;
 
         const startButton = document.getElementById("startButton");
         const measureButton = document.getElementById("measureButton");
@@ -63,7 +65,7 @@
                 }
                 let avg = sum / inputChannel.length;
 
-                console.log("Time:", currentTime.toFixed(6), "| Avg data:", avg.toFixed(4), "| data len:", inputChannel.length );
+                console.log("Time:", currentTime.toFixed(6), "| DT:", (new Date()).toISOString() ,"| Avg data:", avg.toFixed(4), "| data len:", inputChannel.length );
                 if (this._isDetected) return true;
 
                 if (avg > this._threshold) {
@@ -125,6 +127,10 @@
 
                         statusDiv.textContent = `Latency: ${latency.toFixed(2)} ms`;
 
+                        // Measure with difference clock
+                        console.log(`Latency perf clock:`, performance.now() - startPerfTime);
+                        console.log(`Latency Date:`, (new Date()).getTime() - startDateTime.getTime());
+
                         // Stop 250ms later
                         window.setTimeout(() => {
                             workletNode.port.postMessage({
@@ -150,6 +156,8 @@
 
             audioContext.resume();
             startTime = audioContext.currentTime;
+            startPerfTime = performance.now();
+            startDateTime = new Date();
 
             console.log(`Start timestamp: ${(startTime * 1000).toFixed(2)} ms`);
             statusDiv.textContent = `Measuring...`;
